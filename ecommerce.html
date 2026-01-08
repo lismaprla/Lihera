@@ -1,0 +1,1193 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LIHERA — Hijab Store</title>
+
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <style>
+    :root{
+      --accent-1: #f8d7e0;
+      --accent-2: #ffd0e0;
+      --muted: #6c757d;
+      --card-bg: #ffffff;
+    }
+    body{background: linear-gradient(180deg, #fff 0%, #fffafc 100%);font-family: Inter, system-ui, Arial, sans-serif;}
+    .navbar-brand { font-weight:800; letter-spacing:1px; font-size:1.25rem; }
+    .search-suggestions { position: absolute; z-index:1200; width:100%; max-height:240px; overflow:auto; background:#fff; border:1px solid #e9ecef; border-radius:8px; }
+    .product-card img{ height:200px; object-fit:cover; }
+    .product-small img{ height:120px; object-fit:cover; }
+    .star{cursor:pointer; font-size:22px; color:#ccc;}
+    .star.active{ color:#f6b024; }
+    .profile-photo { width:96px; height:96px; object-fit:cover; border-radius:999px; border:3px solid #fff; box-shadow:0 6px 18px rgba(0,0,0,.08); }
+    .countdown-badge { font-weight:700; color:#c82375; }
+    footer { background: transparent; padding: 28px 0; }
+    .badge-discount { background:#ffe6f1; color:#c81d65; font-weight:700; padding:6px 8px; border-radius:6px; }
+    .muted { color: var(--muted); }
+    /* responsive tweaks */
+    @media (max-width:768px){
+      .product-card img{ height:160px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar sticky-top" style="background:linear-gradient(90deg,var(--accent-1),var(--accent-2));">
+  <div class="container">
+    <div class="d-flex align-items-center">
+      <a class="navbar-brand me-3" href="#home" onclick="route('home')">LIHERA</a>
+    </div>
+
+    <div class="flex-fill mx-3 position-relative" style="max-width:720px;">
+      <div class="input-group">
+        <input id="searchInput" type="search" class="form-control rounded-pill" placeholder="Cari produk, mis. pashmina elegan..." />
+        <button class="btn btn-light border rounded-pill ms-2" id="searchBtn">🔍</button>
+        <div class="ms-2 d-none d-md-inline">
+          <button class="btn btn-sm btn-outline-secondary" onclick="route('home')">Home</button>
+          <button class="btn btn-sm btn-outline-secondary ms-2" onclick="route('catalog')">Catalog</button>
+        </div>
+      </div>
+      <div id="suggestions" class="search-suggestions mt-1 d-none"></div>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <div class="me-1">
+        <select id="langSelect" class="form-select form-select-sm">
+          <option value="id">ID</option>
+          <option value="en">EN</option>
+        </select>
+      </div>
+      <button class="btn btn-sm btn-outline-dark" id="accountBtn">👤</button>
+      <button class="btn btn-sm btn-outline-dark position-relative" id="cartBtn">🛒 <span id="cartCount" class="badge bg-dark text-white position-absolute top-0 start-100 translate-middle rounded-pill">0</span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- APP ROOT -->
+<main id="app" class="py-4"></main>
+
+<!-- FOOTER -->
+<footer class="mt-4 py-4" style="background:#f8f9fa;">
+  <div class="container d-flex flex-column flex-md-row justify-content-between align-items-start">
+
+    <!-- Brand Info -->
+    <div class="mb-4">
+      <h5 class="fw-bold">LIHERA</h5>
+      <div class="text-muted">Hijab • Elegant • Minimalist</div>
+      <div class="text-muted">© 2025 LIHERA</div>
+    </div>
+
+    <!-- Location -->
+    <div class="mb-4">
+      <h6 class="fw-bold">Location</h6>
+      <div class="text-muted">Bandung, West Java, Indonesia</div>
+      <div class="text-muted">Open: Mon – Sat, 09.00 – 18.00</div>
+    </div>
+
+    <!-- Contact -->
+    <div class="mb-4">
+      <h6 class="fw-bold">Contact</h6>
+      <div class="text-muted"><i class="bi bi-telephone"></i> +62 812-3456-7890</div>
+      <div class="text-muted"><i class="bi bi-envelope"></i> support@lihera.com</div>
+    </div>
+
+    <!-- Social Media -->
+    <div class="mb-4">
+      <h6 class="fw-bold">Follow Us</h6>
+
+      <a href="#" class="text-decoration-none text-muted d-flex align-items-center mb-1">
+        <i class="bi bi-instagram me-2"></i> Instagram
+      </a>
+
+      <a href="#" class="text-decoration-none text-muted d-flex align-items-center mb-1">
+        <i class="bi bi-tiktok me-2"></i> TikTok
+      </a>
+
+      <a href="#" class="text-decoration-none text-muted d-flex align-items-center mb-1">
+        <i class="bi bi-facebook me-2"></i> Facebook
+      </a>
+    </div>
+
+  </div>
+</footer>
+
+
+<!-- Product Detail Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body" id="productModalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        <button class="btn btn-primary" id="modalAddCart">Tambah ke Keranjang</button>
+        <button class="btn btn-danger" id="modalBuyNow">Buy Now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tracking / Generic Modal -->
+<div class="modal fade" id="genericModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body" id="genericModalBody"></div>
+      <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========================
+   LIHERA SPA - Bootstrap
+   =======================
+   Single-file SPA. Data persisted in localStorage.
+*/
+
+// --------- Demo Data (products & categories) ----------
+const CATEGORIES = [
+  { id: 'ceruty', title: 'Chiffon Elegance Collection' },
+  { id: 'kaos', title: 'Silk Radiance Collection' },
+  { id: 'silk', title: 'Jersey Comfort Collection' },
+  { id: 'viscose', title: 'Viscose Natural Collection' }
+];
+
+const COLORS = ['Dusty Pink','Soft Brown','Cream','Sage','Black'];
+// Generate sample products: 4 categories x 6 products
+// Gambar berdasarkan kategori
+const IMAGES = {
+  ceruty: [
+    'pashminaceruty1.jpg',
+    'pashminaceruty2.jpg',
+    'pashminaceruty3.jpg',
+    'pashminaceruty4.jpg',
+    'pashminaceruty5.jpg',
+    'pashminaceruty6.jpg'
+  ],
+  kaos: [
+    'pashminakaos1.jpg',
+    'pashminakaos2.jpg',
+    'pashminakaos3.jpg',
+    'pashminakaos4.jpg',
+    'pashminakaos5.jpg',
+    'pashminakaos6.jpg'
+  ],
+  silk: [
+    'pashminasilk1.jpg',
+    'pashminasilk2.jpg',
+    'pashminasilk3.jpg',
+    'pashminasilk4.jpg',
+    'pashminasilk5.jpg',
+    'pashminasilk6.jpg',
+  ],
+  viscose: [
+    'pashminaviscose1.jpg',
+    'pashminaviscose2.jpg',
+    'pashminaviscose3.jpg',
+    'pashminaviscose4.jpg',
+    'pashminaviscose5.jpg',
+    'pashminaviscose6.jpg'
+  ]
+};
+
+   let PRODUCTS = [];
+
+CATEGORIES.forEach((cat, ci) => {
+  for (let i = 1; i <= 6; i++) {
+
+    // Harga dasar berbeda per kategori
+    const BASE_PRICE = {
+      ceruty: 120000,
+      silk: 80000,
+      kaos: 70000,
+      viscose: 90000
+    };
+
+    const base = BASE_PRICE[cat.id];
+
+    let price = base;
+    let priceOrig = base;
+    let discount = 0;
+
+    // 🔥 Diskon khusus KATEGORI SILK saja
+    if (cat.id === "ceruty") {
+      const discRate = 0.30; // 30%
+      discount = Math.round(base * discRate);
+      price = base - discount;
+    }
+
+    PRODUCTS.push({
+      id: `${cat.id}-${i}`,
+      title: `${cat.title} Collection`,
+      cat: cat.id,
+
+      price: price,
+      priceOrig: priceOrig,
+      discount: discount,
+
+      img: `images/${IMAGES[cat.id][i - 1]}`,
+
+      desc: `Deskripsi ${cat.title} ${i}`,
+      berat: `${100 + i * 30} gram`,
+      bahan: cat.title,
+      stok: 10 + i * 5,
+      colors: COLORS.slice(),
+      created: Date.now()
+    });
+
+  }
+});
+
+
+// ---------- Local Storage helpers ----------
+const LS = {
+  users: 'lih_users',
+  current: 'lih_current',
+  cart: 'lih_cart',
+  buyNow: 'lih_buyNow',
+  orders: 'lih_orders',
+  reviews: 'lih_reviews',
+  voucher: 'lih_voucher'
+};
+function read(key){ return JSON.parse(localStorage.getItem(key)||'null'); }
+function write(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+// Initialize some LS keys
+if(!localStorage.getItem(LS.users)) localStorage.setItem(LS.users, JSON.stringify([]));
+if(!localStorage.getItem(LS.cart)) localStorage.setItem(LS.cart, JSON.stringify([]));
+if(!localStorage.getItem(LS.orders)) localStorage.setItem(LS.orders, JSON.stringify([]));
+if(!localStorage.getItem(LS.reviews)) localStorage.setItem(LS.reviews, JSON.stringify([]));
+
+// ---------- Routing ----------
+function route(page, opts){
+  location.hash = page;
+  render(page, opts);
+}
+window.addEventListener('hashchange', ()=> render(location.hash.replace('#','') || 'home'));
+window.addEventListener('load', ()=> {
+  updateCartCount();
+  render(location.hash.replace('#','') || 'home');
+  setupGlobal();
+});
+
+// ---------- UI helpers ----------
+const app = document.getElementById('app');
+function el(html){ const div = document.createElement('div'); div.innerHTML = html.trim(); return div.firstChild; }
+function money(n){ return 'Rp ' + Number(n).toLocaleString(); }
+function getCurrentUser(){ return read(LS.current); }
+function setCurrentUser(u){ write(LS.current, u); }
+function logout(){ localStorage.removeItem(LS.current); route('home'); }
+
+// --------- Search suggestions (live) ----------
+function setupGlobal(){
+  const searchInput = document.getElementById('searchInput');
+  const suggestions = document.getElementById('suggestions');
+  searchInput.addEventListener('input', (e)=>{
+    const v = e.target.value.trim().toLowerCase();
+    if(!v){ suggestions.classList.add('d-none'); return; }
+    const found = PRODUCTS.filter(p => p.title.toLowerCase().includes(v) || p.desc.toLowerCase().includes(v)).slice(0,8);
+    if(found.length === 0){ suggestions.classList.add('d-none'); return; }
+    suggestions.innerHTML = found.map(p => `
+      <div class="p-2 border-bottom suggestion-item" style="cursor:pointer" data-id="${p.id}">
+        <div class="d-flex align-items-center">
+          <img src="${p.img}" width="56" height="42" style="object-fit:cover;border-radius:6px;margin-right:10px"/>
+          <div>
+            <div class="fw-bold">${p.title}</div>
+            <div class="text-muted small">${money(p.price)}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    suggestions.classList.remove('d-none');
+
+    suggestions.querySelectorAll('.suggestion-item').forEach(it=>{
+      it.addEventListener('click', ()=> openProductModal(it.dataset.id));
+    });
+  });
+
+  document.addEventListener('click', (ev)=>{
+    if(!ev.target.closest('.search-suggestions') && !ev.target.closest('#searchInput')) {
+      suggestions.classList.add('d-none');
+    }
+  });
+
+  document.getElementById('accountBtn').addEventListener('click', ()=>{
+    const cur = getCurrentUser();
+    if(!cur) route('auth');
+    else route('account');
+  });
+  document.getElementById('cartBtn').addEventListener('click', ()=> route('cart'));
+}
+
+// ---------- Cart helpers ----------
+function getCart(){ return JSON.parse(localStorage.getItem(LS.cart) || '[]'); }
+function saveCart(cart){ localStorage.setItem(LS.cart, JSON.stringify(cart)); updateCartCount(); }
+function updateCartCount(){
+  const cart = getCart();
+  const total = cart.reduce((s,i)=> s + Number(i.qty), 0);
+  const el = document.getElementById('cartCount');
+  if(el) el.textContent = total;
+}
+
+// add to cart (id, qty, color)
+function addToCart(id, qty=1, color=null){
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return alert('Produk tidak ditemukan');
+  qty = Number(qty) || 1;
+  if(!color) color = p.colors[0];
+  const cart = getCart();
+  const existing = cart.find(it=> it.id===id && it.color===color);
+  if(existing) existing.qty = Number(existing.qty) + Number(qty);
+  else cart.push({ id: p.id, title: p.title, price: p.price, img: p.img, qty: Number(qty), color });
+  saveCart(cart);
+  showToast('Ditambahkan ke keranjang');
+}
+function clearBuyNow(){ localStorage.removeItem(LS.buyNow); }
+function setBuyNow(obj){ localStorage.setItem(LS.buyNow, JSON.stringify(obj)); }
+function getBuyNow(){ return read(LS.buyNow); }
+
+// ---------- Product Modal ----------
+let currentModalProduct = null;
+function openProductModal(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  currentModalProduct = p;
+  const modalBody = document.getElementById('productModalBody');
+  modalBody.innerHTML = `
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-6">
+          <img src="${p.img}" class="img-fluid rounded" alt="${p.title}">
+        </div>
+        <div class="col-md-6">
+          <h5>${p.title}</h5>
+          <div class="mb-2">
+            <span class="fw-bold">${money(p.price)}</span>
+            <small class="text-decoration-line-through text-muted ms-2">${money(p.priceOrig)}</small>
+            <span class="badge-discount ms-2">-${Math.round((p.discount/p.priceOrig)*100)}%</span>
+          </div>
+          <p class="text-muted small">${p.desc}</p>
+          <ul class="small text-muted">
+            <li>Stok: ${p.stok}</li>
+            <li>Berat: ${p.berat}</li>
+            <li>Bahan: ${p.bahan}</li>
+          </ul>
+          <div class="mb-2">
+            <label class="form-label small">Warna</label>
+            <div id="modalColors">${p.colors.map((c,i)=>`<div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="modalColor" id="mc-${i}" value="${c}" ${i===0?'checked':''}><label class="form-check-label small" for="mc-${i}">${c}</label></div>`).join('')}</div>
+          </div>
+          <div class="mb-3 d-flex gap-2 align-items-center">
+            <input id="modalQty" type="number" min="1" value="1" class="form-control" style="width:110px"/>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" id="modalToCart">🛒 Keranjang</button>
+            <button class="btn btn-danger" id="modalBuy">Buy Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  // wire buttons
+  const bsModal = new bootstrap.Modal(document.getElementById('productModal'));
+  bsModal.show();
+  document.getElementById('modalToCart').onclick = ()=>{
+    const qty = Number(document.getElementById('modalQty').value || 1);
+    const color = document.querySelector('input[name="modalColor"]:checked').value;
+    addToCart(p.id, qty, color);
+    bsModal.hide();
+  };
+  document.getElementById('modalBuy').onclick = ()=>{
+    const qty = Number(document.getElementById('modalQty').value || 1);
+    const color = document.querySelector('input[name="modalColor"]:checked').value;
+    setBuyNow({ id: p.id, title: p.title, price: p.price, img: p.img, qty, color });
+    bsModal.hide();
+    route('checkout');
+  };
+}
+
+// ---------- Toast (simple) ----------
+function showToast(msg, timeout=1400){
+  const div = document.createElement('div');
+  div.className = 'position-fixed bottom-0 end-0 p-3';
+  div.style.zIndex = 2000;
+  div.innerHTML = `<div class="toast show"><div class="toast-body">${msg}</div></div>`;
+  document.body.appendChild(div);
+  setTimeout(()=> div.remove(), timeout);
+}
+
+// ---------- Render Pages ----------
+
+/* HOME */
+function renderHome(){
+  document.title = 'LIHERA — Home';
+  const reviews = read(LS.reviews) || [];
+  app.innerHTML = `
+    <div class="container">
+      <!-- Carousel -->
+      <div id="homeCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+        <div class="carousel-inner rounded-3 overflow-hidden">
+          <div class="carousel-item active"><img src="images/1.jpg" class="d-block w-100" alt=""></div>
+          <div class="carousel-item"><img src="images/5.jpg" class="d-block w-100" alt=""></div>
+          <div class="carousel-item"><img src="images/3.jpg" class="d-block w-100" alt=""></div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon"></span>
+        </button>
+      </div>
+
+      <!-- Flashsale -->
+      <div class="card mb-4 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div><h5 class="mb-0">Flash Sale</h5><small class="text-muted">Terbatas</small></div>
+          <div class="countdown-badge" id="flashCountdown">--:--:--</div>
+        </div>
+        <div class="row" id="flashRow"></div>
+      </div>
+
+      <!-- Best Seller -->
+      <div class="card mb-4 p-3">
+        <h5>Best Seller</h5>
+        <div class="d-flex gap-3 overflow-auto py-2" id="bestRow"></div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="card mb-4 p-3">
+        <h5>Rekomendasi untukmu</h5>
+        <div class="row" id="recRow"></div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="card mb-4 p-3">
+        <h5>Ulasan Pelanggan</h5>
+        <div id="reviewsRow">
+          ${ reviews.length ? reviews.slice(-4).reverse().map(r=>`
+              <div class="d-flex gap-3 align-items-start p-2 border-bottom">
+                ${ r.media ? `<img src="${r.media}" width="120" style="object-fit:cover;border-radius:8px"/>` : '' }
+                <div>
+                  <div class="fw-bold">${r.name||'Anon'}</div>
+                  <div class="small text-muted">Rating: ${'★'.repeat(r.rating)}</div>
+                  <div class="small">${r.comment}</div>
+                </div>
+              </div>
+            `).join('') : '<div class="text-muted p-2">Belum ada ulasan</div>' }
+        </div>
+      </div>
+    </div>
+  `;
+
+  // populate flash sale (first 3)
+  const flash = PRODUCTS.slice(0,3);
+  const flashRow = document.getElementById('flashRow');
+  flashRow.innerHTML = flash.map(p=>`
+    <div class="col-md-4 mb-2">
+      <div class="card product-card h-100">
+        <img src="${p.img}" class="card-img-top" alt="${p.title}">
+        <div class="card-body">
+          <div class="fw-bold">${p.title}</div>
+          <div class="small text-muted">${money(p.price)} <small class="text-decoration-line-through ms-2">${money(p.priceOrig)}</small></div>
+          <div class="mt-2 d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary" onclick="openProductModal('${p.id}')">Detail</button>
+            <button class="btn btn-sm btn-danger" onclick="setBuyNow({ id:'${p.id}', title:'${p.title}', price:${p.price}, img:'${p.img}', qty:1, color:'${p.colors[0]}' }); route('checkout');">Buy Now</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="addToCart('${p.id}',1,'${p.colors[0]}')">🛒</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // best seller (slice 3..7)
+  const best = PRODUCTS.slice(3,7);
+  const bestRow = document.getElementById('bestRow');
+  bestRow.innerHTML = best.map(p=>`
+    <div class="card product-small" style="min-width:220px">
+      <img src="${p.img}" class="card-img-top" alt="${p.title}">
+      <div class="card-body">
+        <div class="fw-bold small">${p.title}</div>
+        <div class="small text-muted">${money(p.price)}</div>
+        <div class="mt-2 d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary" onclick="openProductModal('${p.id}')">Detail</button>
+          <button class="btn btn-sm btn-danger" onclick="setBuyNow({ id:'${p.id}', title:'${p.title}', price:${p.price}, img:'${p.img}', qty:1, color:'${p.colors[0]}' }); route('checkout');">Buy</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // recommendations (next 3)
+  const rec = PRODUCTS.slice(7,10);
+  const recRow = document.getElementById('recRow');
+  recRow.innerHTML = rec.map(p=>`
+    <div class="col-md-4 mb-3">
+      <div class="card h-100">
+        <img src="${p.img}" class="card-img-top" alt="${p.title}">
+        <div class="card-body">
+          <div class="fw-bold">${p.title}</div>
+          <div class="small text-muted">${money(p.price)}</div>
+          <div class="mt-2 d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary" onclick="openProductModal('${p.id}')">Detail</button>
+            <button class="btn btn-sm btn-danger" onclick="setBuyNow({ id:'${p.id}', title:'${p.title}', price:${p.price}, img:'${p.img}', qty:1, color:'${p.colors[0]}' }); route('checkout');">Buy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // countdown
+  startCountdown(Date.now() + 1000*60*60*2, document.getElementById('flashCountdown'));
+}
+
+/* CATALOG */
+function renderCatalog(){
+  document.title = 'LIHERA — Catalog';
+  app.innerHTML = `
+    <div class="container">
+      <div class="card mb-3 p-3">
+        <div id="catalogCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+          <div class="carousel-inner rounded-3">
+            <div class="carousel-item active"><img src="images/2.jpg" class="d-block w-100" alt=""></div>
+            <div class="carousel-item"><img src="images/4.jpg" class="d-block w-100" alt=""></div>
+            <div class="carousel-item"><img src="images/6.jpg" class="d-block w-100" alt=""></div>
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#catalogCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+          <button class="carousel-control-next" type="button" data-bs-target="#catalogCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+        </div>
+
+        <h4>Kategori</h4>
+        <div class="row" id="categoriesRow"></div>
+      </div>
+
+      <div class="card mb-3 p-3">
+        <h5>Produk Terlaris</h5>
+        <div class="d-flex gap-3 overflow-auto py-2" id="terlarisRow"></div>
+      </div>
+
+      <div class="card mb-3 p-3">
+        <h5>Produk Terbaru</h5>
+        <div class="d-flex gap-3 overflow-auto py-2" id="baruRow"></div>
+      </div>
+    </div>
+  `;
+
+  // categories
+  const catRow = document.getElementById('categoriesRow');
+  catRow.innerHTML = CATEGORIES.map(cat => {
+    const items = PRODUCTS.filter(p=>p.cat===cat.id);
+    return `
+      <div class="col-md-6 mb-3">
+        <div class="card p-3">
+          <h6>${cat.title}</h6>
+          <div class="row">
+            ${items.map(p=>`
+              <div class="col-6 mb-2">
+                <div class="card h-100">
+                  <img src="${p.img}" class="card-img-top" alt="${p.title}" style="height:140px;object-fit:cover">
+                  <div class="card-body">
+                    <div class="small fw-bold">${p.title}</div>
+                    <div class="small text-muted">${money(p.price)}</div>
+                    <div class="mt-2 d-flex gap-1">
+                      <button class="btn btn-sm btn-outline-primary" onclick="openProductModal('${p.id}')">Detail</button>
+                      <button class="btn btn-sm btn-danger" onclick="setBuyNow({ id:'${p.id}', title:'${p.title}', price:${p.price}, img:'${p.img}', qty:1, color:'${p.colors[0]}' }); route('checkout');">Buy</button>
+                      <button class="btn btn-sm btn-outline-secondary" onclick="addToCart('${p.id}',1,'${p.colors[0]}')">🛒</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // terlaris & terbaru
+  document.getElementById('terlarisRow').innerHTML = PRODUCTS.slice(0,4).map(p=>`
+    <div class="card product-small" style="min-width:220px">
+      <img src="${p.img}" class="card-img-top">
+      <div class="card-body">
+        <div class="fw-bold small">${p.title}</div>
+        <div class="small text-muted">${money(p.price)}</div>
+        <div class="mt-2 d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary" onclick="openProductModal('${p.id}')">Detail</button>
+          <button class="btn btn-sm btn-danger" onclick="setBuyNow({ id:'${p.id}', title:'${p.title}', price:${p.price}, img:'${p.img}', qty:1, color:'${p.colors[0]}' }); route('checkout');">Buy</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('baruRow').innerHTML = PRODUCTS.slice(4,6).map(p=>`
+    <div class="card product-small" style="min-width:260px">
+      <img src="${p.img}" class="card-img-top">
+      <div class="card-body">
+        <div class="fw-bold small">${p.title}</div>
+        <div class="small text-muted">${money(p.price)}</div>
+        <div class="mt-2 d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary" onclick="openProductModal('${p.id}')">Detail</button>
+          <button class="btn btn-sm btn-danger" onclick="setBuyNow({ id:'${p.id}', title:'${p.title}', price:${p.price}, img:'${p.img}', qty:1, color:'${p.colors[0]}' }); route('checkout');">Buy</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* AUTH (login & register) */
+function renderAuth(){
+  document.title = 'LIHERA — Login / Register';
+  app.innerHTML = `
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <div class="card p-3">
+            <h5>Login</h5>
+            <div class="mb-2">
+              <input id="loginKey" class="form-control" placeholder="Username / Email / No HP">
+            </div>
+            <div class="mb-2">
+              <input id="loginPass" type="password" class="form-control" placeholder="Password">
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary" id="btnLogin">Login</button>
+              <button class="btn btn-outline-secondary" id="showReg">Daftar</button>
+            </div>
+          </div>
+
+          <div class="card p-3 mt-3" id="regBox" style="display:none;">
+            <h5>Register</h5>
+            <div class="mb-2"><input id="r_name" class="form-control" placeholder="Nama"></div>
+            <div class="mb-2"><input id="r_email" class="form-control" placeholder="Email"></div>
+            <div class="mb-2"><input id="r_phone" class="form-control" placeholder="No HP"></div>
+            <div class="mb-2"><input id="r_username" class="form-control" placeholder="Username"></div>
+            <div class="mb-2"><input id="r_password" type="password" class="form-control" placeholder="Password"></div>
+            <div class="d-flex gap-2"><button class="btn btn-success" id="btnReg">Daftar</button><button class="btn btn-link" id="hideReg">Batal</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('showReg').addEventListener('click', ()=> document.getElementById('regBox').style.display='block');
+  document.getElementById('hideReg').addEventListener('click', ()=> document.getElementById('regBox').style.display='none');
+
+  document.getElementById('btnReg').addEventListener('click', ()=>{
+    const name = document.getElementById('r_name').value.trim();
+    const email = document.getElementById('r_email').value.trim();
+    const phone = document.getElementById('r_phone').value.trim();
+    const username = document.getElementById('r_username').value.trim();
+    const password = document.getElementById('r_password').value;
+    if(!name||!email||!phone||!username||!password) return alert('Lengkapi data registrasi');
+    const users = JSON.parse(localStorage.getItem(LS.users)||'[]');
+    if(users.find(u=> u.username===username || u.email===email || u.phone===phone)) return alert('Akun sudah terdaftar (username/email/phone)');
+    users.push({ username, name, email, phone, password, photo: null });
+    localStorage.setItem(LS.users, JSON.stringify(users));
+    alert('Registrasi berhasil. Silakan login.');
+    document.getElementById('regBox').style.display = 'none';
+  });
+
+  document.getElementById('btnLogin').addEventListener('click', ()=>{
+    const key = document.getElementById('loginKey').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    if(!key||!pass) return alert('Isi login');
+    const users = JSON.parse(localStorage.getItem(LS.users)||'[]');
+    const u = users.find(usr => (usr.username===key || usr.email===key || usr.phone===key) && usr.password===pass);
+    if(!u) return alert('Login gagal');
+    write(LS.current, { username: u.username, name:u.name, email:u.email, phone:u.phone, photo:u.photo||null });
+    alert('Login berhasil');
+    updateCartCount();
+    route('home');
+  });
+}
+
+/* ACCOUNT */
+function renderAccount(){
+  document.title = 'LIHERA — Akun';
+  const cur = getCurrentUser();
+  if(!cur) return route('auth');
+  const orders = JSON.parse(localStorage.getItem(LS.orders)||'[]').filter(o=> o.name === cur.name || o.phone === cur.phone || o.email === cur.email);
+  app.innerHTML = `
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card p-3 mb-3">
+            <h5>Data Diri</h5>
+            <div class="mb-2"><label class="form-label small">Username</label><input id="pf_username" class="form-control" value="${cur.username}" disabled></div>
+            <div class="mb-2"><label class="form-label small">Nama</label><input id="pf_name" class="form-control" value="${cur.name||''}"></div>
+            <div class="mb-2"><label class="form-label small">Email</label><input id="pf_email" class="form-control" value="${cur.email||''}"></div>
+            <div class="mb-2"><label class="form-label small">No HP</label><input id="pf_phone" class="form-control" value="${cur.phone||''}"></div>
+            <div class="mb-2"><label class="form-label small">Tanggal Lahir</label><input id="pf_dob" type="date" class="form-control"></div>
+            <div class="mb-2"><label class="form-label small">Gender</label>
+              <select id="pf_gender" class="form-select"><option>Wanita</option><option>Pria</option></select>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary" id="saveProfile">Simpan</button>
+              <button class="btn btn-outline-danger" id="btnLogout">Logout</button>
+            </div>
+          </div>
+
+          <div class="card p-3">
+            <h5>Pesanan</h5>
+            <div id="ordersList">${ orders.length ? orders.map(o => `
+              <div class="p-2 border-bottom">
+                <div class="small fw-bold">${o.id} — ${money(o.total)}</div>
+                <div class="small text-muted">Status: ${o.status}</div>
+                <div class="mt-2">
+                  <button class="btn btn-sm btn-outline-primary" onclick="route('order','${o.id}')">Detail</button>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="openTrackingModal('${o.id}')">Lacak</button>
+                </div>
+              </div>
+            `).join('') : '<div class="text-muted p-2">Belum ada pesanan</div>' }</div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card p-3 text-center">
+            <h6>Foto Profil</h6>
+            <img id="profilePhotoPreview" class="profile-photo mb-2" src="${cur.photo || 'https://picsum.photos/seed/profile/200'}" alt="profile">
+            <input id="profilePhotoInput" type="file" class="form-control form-control-sm" accept="image/*">
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('btnLogout').addEventListener('click', ()=> { logout(); });
+  document.getElementById('saveProfile').addEventListener('click', ()=>{
+    const users = JSON.parse(localStorage.getItem(LS.users)||'[]');
+    const curU = getCurrentUser();
+    const u = users.find(x=>x.username===curU.username);
+    if(!u) return;
+    u.name = document.getElementById('pf_name').value;
+    u.email = document.getElementById('pf_email').value;
+    u.phone = document.getElementById('pf_phone').value;
+    u.dob = document.getElementById('pf_dob').value;
+    u.gender = document.getElementById('pf_gender').value;
+    localStorage.setItem(LS.users, JSON.stringify(users));
+    // update current
+    write(LS.current, { username:u.username, name:u.name, email:u.email, phone:u.phone, photo:u.photo||null });
+    alert('Profil disimpan');
+  });
+  document.getElementById('profilePhotoInput').addEventListener('change', async (e)=>{
+    const f = e.target.files[0];
+    if(!f) return;
+    const data = await fileToDataURL(f);
+    const users = JSON.parse(localStorage.getItem(LS.users)||'[]');
+    const curU = getCurrentUser();
+    const u = users.find(x=>x.username===curU.username);
+    if(u){ u.photo = data; localStorage.setItem(LS.users, JSON.stringify(users)); write(LS.current, { username:u.username, name:u.name, email:u.email, phone:u.phone, photo:u.photo }); document.getElementById('profilePhotoPreview').src = data; alert('Foto profil diperbarui'); }
+  });
+}
+
+/* CART */
+function renderCart(){
+  document.title = 'LIHERA — Keranjang';
+  const cart = getCart();
+  app.innerHTML = `
+    <div class="container">
+      <h4>Keranjang</h4>
+      <div class="row">
+        <div class="col-md-8" id="cartItems">
+          ${ cart.length ? cart.map((it, idx) => `
+            <div class="card mb-2 p-2">
+              <div class="d-flex gap-3 align-items-center">
+                <img src="${it.img}" width="120" height="90" style="object-fit:cover;border-radius:8px"/>
+                <div class="flex-fill">
+                  <div class="fw-bold">${it.title}</div>
+                  <div class="small text-muted">Warna: ${it.color}</div>
+                  <div class="small text-muted">Harga: ${money(it.price)} x ${it.qty} = ${money(it.price*it.qty)}</div>
+                </div>
+                <div>
+                  <input id="cartQty-${idx}" type="number" min="1" value="${it.qty}" class="form-control form-control-sm mb-2" style="width:90px" onchange="updateQty(${idx})">
+                  <button class="btn btn-sm btn-outline-danger" onclick="removeCartItem(${idx})">Hapus</button>
+                </div>
+              </div>
+            </div>
+          `).join('') : '<div class="text-muted">Keranjang kosong</div>' }
+        </div>
+
+        <div class="col-md-4">
+          <div class="card p-3">
+            <div class="fw-bold mb-2">Ringkasan</div>
+            <div class="mb-2">Subtotal: <span id="cartSubtotal">${money(cart.reduce((s,i)=> s + i.qty*i.price,0))}</span></div>
+            <div class="d-grid">
+              <button class="btn btn-primary" onclick="route('checkout')">Bayar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function updateQty(idx){
+  const v = Number(document.getElementById(`cartQty-${idx}`).value || 1);
+  const cart = getCart();
+  cart[idx].qty = v;
+  saveCart(cart);
+  renderCart();
+}
+function removeCartItem(idx){
+  const cart = getCart();
+  cart.splice(idx,1);
+  saveCart(cart);
+  renderCart();
+}
+
+/* CHECKOUT */
+function renderCheckout(){
+  document.title = 'LIHERA — Pembayaran';
+  const buyNow = getBuyNow();
+  const cart = getCart();
+  const items = buyNow ? [buyNow] : cart;
+  if(items.length === 0) {
+    app.innerHTML = `<div class="container"><div class="alert alert-warning">Tidak ada produk untuk dibayar. Kembali ke <a href="#catalog" onclick="route('catalog')">Catalog</a></div></div>`;
+    return;
+  }
+
+  app.innerHTML = `
+    <div class="container">
+      <h4>Pembayaran</h4>
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card p-3 mb-3">
+            <h6>Produk</h6>
+            ${ items.map(it => `
+              <div class="d-flex gap-3 align-items-center border-bottom py-2">
+                <img src="${it.img}" width="100" height="80" style="object-fit:cover;border-radius:6px"/>
+                <div>
+                  <div class="fw-bold">${it.title || it.name}</div>
+                  <div class="small text-muted">Warna: ${it.color} — Jumlah: ${it.qty}</div>
+                </div>
+                <div class="ms-auto">${money(it.price * it.qty)}</div>
+              </div>
+            `).join('') }
+          </div>
+
+          <div class="card p-3 mb-3">
+            <h6>Alamat</h6>
+            <div class="mb-2"><input id="addrName" class="form-control" placeholder="Nama Penerima" value="${getCurrentUser()?getCurrentUser().name:''}"></div>
+            <div class="mb-2"><input id="addrPhone" class="form-control" placeholder="No HP" value="${getCurrentUser()?getCurrentUser().phone:''}"></div>
+            <div class="mb-2"><textarea id="addrFull" class="form-control" placeholder="Alamat lengkap"></textarea></div>
+            <div class="mb-2">
+              <label class="form-label small">Expedisi</label>
+              <select id="shipSel" class="form-select form-select-sm">
+                <option value="jne" data-price="10000" data-est="2-3">JNE - Rp10.000 (2-3 hari)</option>
+                <option value="jnt" data-price="11000" data-est="1-2">J&T - Rp11.000 (1-2 hari)</option>
+                <option value="cargo" data-price="20000" data-est="3-5">Cargo - Rp20.000 (3-5 hari)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card p-3 mb-3">
+            <h6>Voucher</h6>
+            <div class="input-group">
+              <input id="voucherInput" class="form-control form-control-sm" placeholder="Masukkan kode voucher (contoh: VOUCHER10)">
+              <button class="btn btn-sm btn-outline-success" onclick="applyVoucher()">Terapkan</button>
+            </div>
+            <div id="voucherMsg" class="mt-2 small text-success"></div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card p-3">
+            <h6>Ringkasan Pembayaran</h6>
+            <div class="mb-2">Subtotal: <span id="sumSubtotal">${money(items.reduce((s,i)=> s + i.qty * i.price,0))}</span></div>
+            <div class="mb-2">Biaya Admin: <span id="sumAdmin">${money(2500)}</span></div>
+            <div class="mb-2">Ongkir: <span id="sumShip">${money( Number(document.getElementById('shipSel')?.selectedOptions[0]?.dataset?.price || 15000) )}</span></div>
+            <div class="mb-2">Diskon: <span id="sumDisc">-</span></div>
+            <hr>
+            <div class="fw-bold">Total: <span id="sumTotal">${money(items.reduce((s,i)=> s + i.qty * i.price,0) + 2500 + Number(document.getElementById('shipSel')?.selectedOptions[0]?.dataset?.price || 15000))}</span></div>
+
+            <div class="mt-3">
+              <h6>Metode Pembayaran</h6>
+              <div class="form-check"><input class="form-check-input" type="radio" name="paymethod" id="pm1" value="bca" checked><label class="form-check-label small" for="pm1">Transfer Bank (BCA)</label></div>
+              <div class="form-check"><input class="form-check-input" type="radio" name="paymethod" id="pm2" value="mandiri"><label class="form-check-label small" for="pm2">Mandiri</label></div>
+              <div class="form-check"><input class="form-check-input" type="radio" name="paymethod" id="pm3" value="dana"><label class="form-check-label small" for="pm3">E-Wallet (DANA)</label></div>
+            </div>
+
+            <div class="d-grid mt-3">
+              <button class="btn btn-success" onclick="createOrder()">Bayar</button>
+              <button class="btn btn-link" onclick="route('cart')">Batal</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // update totals on ship change
+  document.getElementById('shipSel').addEventListener('change', updateCheckoutSummary);
+  updateCheckoutSummary();
+}
+function updateCheckoutSummary(){
+  const buyNow = getBuyNow();
+  const items = buyNow ? [buyNow] : getCart();
+  const subtotal = items.reduce((s,i)=> s + i.qty * i.price, 0);
+  const admin = 2500;
+  const shipPrice = Number(document.getElementById('shipSel').selectedOptions[0].dataset.price);
+  const voucher = localStorage.getItem(LS.voucher);
+  let disc = 0;
+  if(voucher === 'VOUCHER10') disc = Math.round(subtotal * 0.1);
+  document.getElementById('sumSubtotal').textContent = money(subtotal);
+  document.getElementById('sumAdmin').textContent = money(admin);
+  document.getElementById('sumShip').textContent = money(shipPrice);
+  document.getElementById('sumDisc').textContent = disc ? '-' + money(disc) : '-';
+  document.getElementById('sumTotal').textContent = money(subtotal + admin + shipPrice - disc);
+}
+function applyVoucher(){
+  const v = document.getElementById('voucherInput').value.trim();
+  if(!v) return alert('Masukkan kode voucher');
+  if(v === 'VOUCHER10'){ localStorage.setItem(LS.voucher, 'VOUCHER10'); document.getElementById('voucherMsg').textContent = 'Voucher VOUCHER10 diterapkan (10% OFF)'; }
+  else { document.getElementById('voucherMsg').textContent = 'Voucher tidak valid'; localStorage.removeItem(LS.voucher); }
+  updateCheckoutSummary();
+}
+function createOrder(){
+  const name = document.getElementById('addrName').value.trim();
+  const phone = document.getElementById('addrPhone').value.trim();
+  const alamat = document.getElementById('addrFull').value.trim();
+  if(!name || !phone || !alamat) return alert('Lengkapi alamat pengiriman');
+  const buyNow = getBuyNow();
+  const items = buyNow ? [buyNow] : getCart();
+  if(items.length === 0) return alert('Tidak ada item');
+  const subtotal = items.reduce((s,i)=> s + i.qty * i.price, 0);
+  const shipPrice = Number(document.getElementById('shipSel').selectedOptions[0].dataset.price);
+  const admin = 2500;
+  const voucher = localStorage.getItem(LS.voucher);
+  let disc = 0; if(voucher==='VOUCHER10') disc = Math.round(subtotal*0.1);
+  const total = subtotal + shipPrice + admin - disc;
+  const order = {
+    id: 'ORD' + Date.now(),
+    items,
+    name,
+    phone,
+    alamat,
+    exp: document.getElementById('shipSel').value,
+    shipPrice, admin, voucher, disc, total,
+    status: 'Dibuat',
+    trackingNo: 'TRK'+Math.floor(Math.random()*900000+100000),
+    created: Date.now()
+  };
+  const orders = JSON.parse(localStorage.getItem(LS.orders)||'[]');
+  orders.push(order);
+  localStorage.setItem(LS.orders, JSON.stringify(orders));
+  // clear buyNow or cart
+  if(buyNow) clearBuyNow(); else localStorage.setItem(LS.cart, JSON.stringify([]));
+  localStorage.removeItem(LS.voucher);
+  updateCartCount();
+  route('order', order.id);
+}
+
+/* ORDER DETAIL & TRACKING */
+function renderOrder(orderId){
+  document.title = 'LIHERA — Pesanan';
+  const orders = JSON.parse(localStorage.getItem(LS.orders)||'[]');
+  const ord = orders.find(o=> o.id === orderId) || orders[orders.length-1];
+  if(!ord) return app.innerHTML = `<div class="container"><div class="alert alert-warning">Pesanan tidak ditemukan</div></div>`;
+  app.innerHTML = `
+    <div class="container">
+      <h4>Detail Pesanan</h4>
+      <div class="card p-3">
+        <div class="small">No Pesanan: ${ord.id}</div>
+        <div class="small">No Pengiriman: ${ord.trackingNo}</div>
+        <div class="small">Expedisi: ${ord.exp}</div>
+        <div class="small">Nama: ${ord.name}</div>
+        <div class="small">Alamat: ${ord.alamat}</div>
+        <hr>
+        ${ ord.items.map(it => `
+          <div class="d-flex gap-3 align-items-center mb-2">
+            <img src="${it.img}" width="100" height="70" style="object-fit:cover;border-radius:6px"/>
+            <div>
+              <div class="fw-bold">${it.title || it.name}</div>
+              <div class="small text-muted">Warna: ${it.color} • Jumlah: ${it.qty}</div>
+            </div>
+            <div class="ms-auto">${money(it.price * it.qty)}</div>
+          </div>
+        `).join('') }
+        <hr>
+        <div class="d-flex justify-content-between"><div class="muted">Total</div><div class="fw-bold">${money(ord.total)}</div></div>
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-outline-primary" onclick="openTrackingModal('${ord.id}')">Lacak</button>
+          <button class="btn btn-outline-secondary" onclick="route('home')">Kembali</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function openTrackingModal(orderId){
+  const orders = JSON.parse(localStorage.getItem(LS.orders)||'[]');
+  const ord = orders.find(o=> o.id === orderId);
+  if(!ord) return alert('Pesanan tidak ditemukan');
+  const modalBody = document.getElementById('genericModalBody');
+  modalBody.innerHTML = `
+    <h5>Pelacakan - ${ord.id}</h5>
+    <div class="small text-muted">No Resi: ${ord.trackingNo}</div>
+    <div class="small mt-2">Status: <strong id="trackStatus">${ord.status}</strong></div>
+    <div class="mt-3">${ ord.items.map(it=>`<div class="d-flex gap-2 mb-2"><img src="${it.img}" width="80" height="60" style="object-fit:cover"/><div><div class="fw-bold">${it.title || it.name}</div><div class="small text-muted">Jumlah: ${it.qty}</div></div></div>`).join('') }</div>
+    <div class="mt-3">
+      <button class="btn btn-success me-2" id="markReceived">Sudah Diterima</button>
+      <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+    </div>
+  `;
+  const gModal = new bootstrap.Modal(document.getElementById('genericModal'));
+  gModal.show();
+  document.getElementById('markReceived').onclick = ()=>{
+    ord.status = 'Sudah Diterima';
+    localStorage.setItem(LS.orders, JSON.stringify(orders));
+    gModal.hide();
+    // go to rating
+    route('rating', ord.id);
+  };
+}
+
+
+ /* RATING (5 star + comment + upload) */
+function renderRating(orderId){
+  document.title = 'LIHERA — Penilaian';
+  const orders = JSON.parse(localStorage.getItem(LS.orders)||'[]');
+  const ord = orders.find(o=> o.id === orderId) || orders[orders.length-1];
+  if(!ord) return app.innerHTML = `<div class="container"><div class="alert alert-warning">Pesanan tidak ditemukan</div></div>`;
+  app.innerHTML = `
+    <div class="container">
+      <h4>Berikan Penilaian untuk Pesanan ${ord.id}</h4>
+      <div class="card p-3">
+        ${ ord.items.map((it, idx) => `
+          <div class="mb-3">
+            <img src="${it.img}" width="120" height="90" style="object-fit:cover;border-radius:8px"/>
+            <div class="fw-bold">${it.title || it.name}</div>
+            <div class="stars" data-idx="${idx}">
+              ${[1,2,3,4,5].map(i => `<span class="star" data-value="${i}">☆</span>`).join('')}
+            </div>
+            <div class="mt-2"><textarea id="c-${idx}" class="form-control" placeholder="Komentar..."></textarea></div>
+            <div class="mt-2"><input id="f-${idx}" type="file" accept="image/*,video/*" class="form-control form-control-sm"></div>
+          </div>
+        `).join('') }
+        <div class="d-grid"><button class="btn btn-primary" id="submitRatings">Kirim Penilaian</button></div>
+      </div>
+    </div>
+  `;
+
+  // star handlers
+  document.querySelectorAll('.stars').forEach(s=>{
+    s.addEventListener('click', (ev)=>{
+      if(!ev.target.classList.contains('star')) return;
+      const val = Number(ev.target.dataset.value);
+      const stars = Array.from(s.querySelectorAll('.star'));
+      stars.forEach((st,i)=> st.textContent = i < val ? '★' : '☆');
+      s.dataset.value = val;
+    });
+  });
+
+  document.getElementById('submitRatings').addEventListener('click', async ()=>{
+    const reviews = JSON.parse(localStorage.getItem(LS.reviews)||'[]');
+    for(let idx=0; idx<ord.items.length; idx++){
+      const starsEl = document.querySelector(`.stars[data-idx="${idx}"]`);
+      const rating = Number(starsEl.dataset.value) || 5;
+      const comment = document.getElementById(`c-${idx}`).value || '';
+      const fileEl = document.getElementById(`f-${idx}`);
+      let media = null;
+      if(fileEl && fileEl.files && fileEl.files[0]) media = await fileToDataURL(fileEl.files[0]);
+      reviews.push({ orderId: ord.id, name: getCurrentUser()?getCurrentUser().name:'Anon', rating, comment, media });
+    }
+    localStorage.setItem(LS.reviews, JSON.stringify(reviews));
+    alert('Terima kasih atas penilaian Anda!');
+    route('home');
+  });
+}
+
+
+// ---------- Utilities ----------
+function startCountdown(target, el){
+  function tick(){
+    const diff = target - Date.now();
+    if(diff <= 0){ el.textContent = 'Selesai'; clearInterval(ti); return; }
+    const h = Math.floor(diff/3600000);
+    const m = Math.floor((diff%3600000)/60000);
+    const s = Math.floor((diff%60000)/1000);
+    el.textContent = `${h}j ${m}m ${s}s`;
+  }
+  tick();
+  const ti = setInterval(tick, 1000);
+}
+function fileToDataURL(file){
+  return new Promise((res, rej)=>{
+    const r = new FileReader();
+    r.onload = ()=> res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+// ---------- Page router implementation ----------
+function render(page, opts){
+  // page may be 'order' + id or 'rating' + id when route called with second param
+  if(page === '' || !page) page = 'home';
+  // if route('order', id) called, location.hash will be 'order' but we must pass opts; handle below
+  if(page === 'home') renderHome();
+  else if(page === 'catalog') renderCatalog();
+  else if(page === 'auth') renderAuth();
+  else if(page === 'account') renderAccount();
+  else if(page === 'cart') renderCart();
+  else if(page === 'checkout') renderCheckout();
+  else if(page === 'order'){
+    // if opts is a string id, use that; if location hash contains id (like #order), handle last order
+    const id = (typeof opts === 'string') ? opts : (opts && opts.id) ? opts.id : null;
+    renderOrder(id);
+  }
+  else if(page === 'rating'){
+    const id = (typeof opts === 'string') ? opts : (opts && opts.id) ? opts.id : null;
+    renderRating(id);
+  }
+  else renderHome();
+  // After render update cart count
+  updateCartCount();
+}
+
+/* When route('order', id) used, we call render('order', id). But if user navigates to #order manually, location.hash won't include id.
+   To support route('order','ORD...') we also accept route('order') with opts. So route function stores hash only.
+*/
+function route(page){
+  // If called with 2 args (route('order','ORD...')), handle
+  if(arguments.length > 1){
+    const arg = arguments[1];
+    // set a temp storage (history state) so render can retrieve
+    history.replaceState({ __lihera_arg: arg }, '', '#' + page);
+    render(page, arg);
+    location.hash = page;
+  } else {
+    location.hash = page;
+    // when hash change triggers, render will be called by the event listener
+    render(page);
+  }
+}
+
+// Support route('order', id) direct calls from buttons that pass string
+// E.g. route('order', 'ORD123')
+window.route = function(page, arg){
+  if(arguments.length > 1){
+    history.replaceState({ __lihera_arg: arg }, '', '#' + page);
+    render(page, arg);
+  } else {
+    location.hash = page;
+    render(page);
+  }
+};
+
+// If history state contains arg (when user refreshes), try to pass it through
+window.addEventListener('load', ()=>{
+  const st = history.state;
+  if(st && st.__lihera_arg){
+    // no-op, render will be called normally
+  }
+});
+
+// ---------- Initial small population (for demo) ----------
+(function initDemo(){
+  // nothing to do here. update cart count & start countdown for home
+})();
+
+</script>
+</body>
+</html>
